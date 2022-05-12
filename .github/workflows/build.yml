@@ -18,7 +18,6 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
-        python-version: ['3.7', '3.8', '3.9', '3.10']
 
     # Steps represent a sequence of tasks that will be executed as part
     # of the job
@@ -27,39 +26,19 @@ jobs:
       # can access it
       - uses: actions/checkout@v2
 
-      - name: setup prerequisites
-        shell: bash
-        run: |
-          if [ "$RUNNER_OS" == "Linux" ]; then
-            sudo apt install libpcsclite-dev python3-all-dev python3-setuptools swig
-          elif [ "$RUNNER_OS" == "macOS" ]; then
-            brew install swig
-          else
-            echo "$RUNNER_OS not supported"
-            exit 1
-          fi
-
-      - name: build
-        shell: bash
-        run: PYTHON=python3 make
-
-      - name: Build
-        run: |
-          python setup.py sdist
-          python setup.py bdist_wheel
-
-      - name: test prep
-        shell: bash
-        run: |
-          pip3 install -r dev-requirements.txt
-          pip3 install .
-
-      - name: test run
-        shell: bash
-        run: |
-          find build
-          PYTHON=python3 make test
+      - name: Build wheels
+        uses: pypa/cibuildwheel@v2.5.0
+        env:
+          CIBW_ARCHS_MACOS: x86_64 universal2
+          CIBW_ARCHS_LINUX: auto
+          CIBW_SKIP: '*-win32 *-musllinux_*'
+          CIBW_BEFORE_ALL_LINUX: apt-get update; apt-get install -y libpcsclite-dev python3-all-dev python3-setuptools swig
+          CIBW_BEFORE_ALL_MACOS: brew install swig
+          CIBW_MANYLINUX_X86_64_IMAGE: manylinux_2_24
+          CIBW_MANYLINUX_I686_IMAGE: manylinux_2_24
+          CIBW_MANYLINUX_PYPY_X86_64_IMAGE: manylinux_2_24
+          CIBW_MANYLINUX_PYPY_I686_IMAGE: manylinux_2_24
 
       - uses: actions/upload-artifact@v2
         with:
-          path: dist
+          path: ./wheelhouse/*.whl
