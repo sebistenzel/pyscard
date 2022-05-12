@@ -42,6 +42,11 @@ jobs:
         shell: bash
         run: PYTHON=python3 make
 
+      - name: Build
+        run: |
+          python setup.py sdist
+          python setup.py bdist_wheel
+
       - name: test prep
         shell: bash
         run: |
