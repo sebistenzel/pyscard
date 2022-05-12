@@ -58,3 +58,7 @@ jobs:
         run: |
           find build
           PYTHON=python3 make test
+
+      - uses: actions/upload-artifact@v2
+        with:
+          path: dist
